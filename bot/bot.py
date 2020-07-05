@@ -1,5 +1,6 @@
 from scraper import scraper
 from selenium import webdriver
+from PIL import Image
 from bs4 import BeautifulSoup
 from datetime import datetime, timedelta
 import random
@@ -29,7 +30,29 @@ def build_image(html):
     driver = webdriver.PhantomJS(executable_path=PHANTOMJS_PATH)
     driver.get(tmp_file)
     driver.save_screenshot(IMAGE_NAME)
-    return True
+
+    img = Image.open(IMAGE_NAME)
+    total_width, total_height = img.size
+    offset_y = 316
+
+    if offset_y*4 < total_height:
+        return []
+
+    # Crop up to 4 images from the main screenshot
+    offset = (0, 0)
+    images = []
+    for i in range(4):
+        # If an image will be larger than the content, crop height to be equal to content height
+        if offset[1] < total_height < offset[1] + offset_y:
+            offset_y = total_height - offset[1]
+        cropped_img = img.crop((offset[0], offset[1], total_width, offset[1] + offset_y))
+        image_path = './output/' + 'crop' + str(i) + '.png'
+        cropped_img.save(image_path)
+        images.append(image_path)
+        offset = (offset[0], offset[1] + offset_y)
+        if offset[1] >= total_height:
+            break
+    return images
 
 
 def invalidate_cache(invalidation_age, file_path):
@@ -99,14 +122,18 @@ def main():
     controversies_html.find("body").insert_after(article_title)
     controversies_html.find("h1").extend(scraped_html_dict[rand_section])
 
-    build_image(controversies_html.prettify())
+    images = build_image(controversies_html.prettify())
+    if not images:
+        print("Controversies section too long")
+        exit(1)
 
     # Build tweet
     headline_text = article_title_text + ' - ' + scraper.process_text(rand_section)
     controversy_text = scraper.process_text(get_text(scraped_html_dict[rand_section][1:]))
     short_controversy_text = scraper.truncate_to_length('\n\n'+controversy_text, 280-len(headline_text))
     tweet_text = headline_text + short_controversy_text
-    tweet(tweet_text, media=IMAGE_NAME)
+
+    tweet(tweet_text, media=images)
     print(tweet_text)
 
 

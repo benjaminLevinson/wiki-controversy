@@ -49,6 +49,8 @@ def scrape_html_under_heading(html, heading):
     for tag in heading_tag.next_siblings:
         if type(tag) is NavigableString and tag == '\n':
             continue
+        elif type(tag) is Tag and "thumb" in tag.get("class", "") or "hatnote" in tag.get("class", ""):
+            continue
         elif type(tag) is Tag and tag.name[0] == 'h' and get_heading_tag_size(tag) <= tag_size:
             break
         elif type(tag) is Tag and tag.name[0] == 'h' and get_heading_tag_size(tag) > tag_size:
