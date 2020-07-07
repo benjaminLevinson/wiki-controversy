@@ -14,12 +14,12 @@ CACHE_NAME = OUTPUT_DIR + '/cache.html'
 IMAGE_NAME = OUTPUT_DIR + "/controversy_screenshot.png"
 
 
-def tweet(text, media=""):
+def tweet(text, **kwargs):
     api = twitter.Api(consumer_key=os.getenv("CONTROVERSY_CONSUMER_KEY"),
                       consumer_secret=os.getenv("CONTROVERSY_CONSUMER_SECRET"),
                       access_token_key=os.getenv("CONTROVERSY_ACCESS_TOKEN_KEY"),
                       access_token_secret=os.getenv("CONTROVERSY_ACCESS_TOKEN_SECRET"))
-    api.PostUpdate(text, media=media)
+    return api.PostUpdate(text, **kwargs)
 
 
 def build_image(html):
@@ -132,9 +132,10 @@ def main():
     controversy_text = scraper.process_text(get_text(scraped_html_dict[rand_section][1:]))
     short_controversy_text = scraper.truncate_to_length('\n\n'+controversy_text, 280-len(headline_text))
     tweet_text = headline_text + short_controversy_text
-
-    tweet(tweet_text, media=images)
     print(tweet_text)
+
+    status = tweet(tweet_text, media=images)
+    tweet(page_url, in_reply_to_status_id=status.id)
 
 
 if __name__ == "__main__":
