@@ -16,31 +16,42 @@ def scrape_article_title(article):
     return soup.find(id="firstHeading")
 
 
-def get_heading_tag_size(tag):
-    return int(tag.name[-1])
+# Scrape first sentence of bio
+def scrape_introduction_text(html_doc):
+    def p_no_class(tag):
+        return tag.name == 'p' and not tag.has_attr('class')
 
+    soup = BeautifulSoup(html_doc, 'html.parser')
+    infobox = soup.find(class_="infobox")
+    if infobox:
+        par = infobox.find_next_sibling(p_no_class)
+    else:
+        # No infobox
+        print("No infobox found!")
+        par = soup.find(id="mw-content-text").find(p_no_class)
 
-def scrape_under_heading(html, heading):
-    soup = BeautifulSoup(html, 'html.parser')
-    heading_tag = soup.find(id=heading).parent
-    tag_size = get_heading_tag_size(heading_tag)
-    paragraphs = collections.defaultdict(list)
-    header = "Controversies"
-    for tag in heading_tag.next_siblings:
-        if type(tag) is NavigableString and tag == '\n':
-            continue
-        elif type(tag) is Tag and tag.name[0] == 'h' and get_heading_tag_size(tag) <= tag_size:
-            break
-        elif type(tag) is Tag and tag.name[0] == 'h' and get_heading_tag_size(tag) > tag_size:
-            header = process_text(tag.text)
-        elif type(tag) is Tag and tag.name == 'p':
-            paragraphs[header].append(process_text(tag.text))
-    return paragraphs
+    # Find first navigable string containing a period to get first sentence
+    # (if a period is in a non-navigable string, it may be part of an abbreviated title like 'Dr.' and not actually the
+    # end of the sentence)
+    par_tags = []
+    for child in par:
+        if type(child) is NavigableString and '.' in child:
+            remaining_sentence = child.partition('.')[0]
+            par_tags.append(remaining_sentence+'.')
+            return par_tags
+        par_tags.append(child)
+    return par_tags
 
 
 def scrape_html_under_heading(html, heading):
+    def get_heading_tag_size(tag):
+        return int(tag.name[-1])
+
     soup = BeautifulSoup(html, 'html.parser')
-    heading_tag = soup.find(id=heading).parent
+    heading = soup.find(id=heading)
+    if not heading:
+        return {}
+    heading_tag = heading.parent
     tag_size = get_heading_tag_size(heading_tag)
 
     paragraphs = collections.defaultdict(BeautifulSoup("", 'html.parser'))
@@ -55,6 +66,8 @@ def scrape_html_under_heading(html, heading):
             break
         elif type(tag) is Tag and tag.name[0] == 'h' and get_heading_tag_size(tag) > tag_size:
             header = tag.text
+        elif type(tag) is Tag and tag.name == 'div':
+            tag['style'] = ""
         paragraphs[header].append(tag)
     return paragraphs
 

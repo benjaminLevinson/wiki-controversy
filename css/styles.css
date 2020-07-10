@@ -1483,19 +1483,6 @@
 		text-align: center;
 	}
 	
-	/* Images */
-	/* @noflip */
-	div.floatright,
-	table.floatright {
-		margin: 0 0 0.5em 0.5em;
-	}
-	
-	/* @noflip */
-	div.floatleft,
-	table.floatleft {
-		margin: 0 0.5em 0.5em 0;
-	}
-	
 	/* Thumbnails */
 	div.thumb {
 		margin-bottom: 0.5em;
