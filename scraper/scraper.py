@@ -54,9 +54,9 @@ def scrape_html_under_heading(html, heading):
     heading_tag = heading.parent
     tag_size = get_heading_tag_size(heading_tag)
 
-    headings_to_subtags = collections.defaultdict(BeautifulSoup("", 'html.parser'))
+    paragraphs = collections.defaultdict(BeautifulSoup("", 'html.parser'))
     header = heading_tag.text
-    headings_to_subtags[header].append(heading_tag)
+    paragraphs[header].append(heading_tag)
     for tag in heading_tag.next_siblings:
         if type(tag) is NavigableString and tag == '\n':
             continue
@@ -68,20 +68,8 @@ def scrape_html_under_heading(html, heading):
             header = tag.text
         elif type(tag) is Tag and tag.name == 'div':
             tag['style'] = ""
-        headings_to_subtags[header].append(tag)
-
-    # Remove empty heading sections
-    # (ie subheadings start immediately under main heading, no body text under main section)
-    for heading in headings_to_subtags:
-        if heading == get_text(headings_to_subtags[heading]):
-            del headings_to_subtags[heading]
-
-    return headings_to_subtags
-
-
-def get_text(ls_tags):
-    text_section = list(map(lambda x: x.text, ls_tags))
-    return ''.join(text_section).strip()
+        paragraphs[header].append(tag)
+    return paragraphs
 
 
 def process_text(text):
