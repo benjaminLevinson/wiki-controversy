@@ -64,6 +64,7 @@ def screenshot_article(header_tags, body_tags):
                 tags_index -= 1
                 break
         driver.save_screenshot(image_name)
+        driver.quit()
         return tags[tags_index:]
 
     images = []
