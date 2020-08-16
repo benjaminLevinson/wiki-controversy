@@ -74,6 +74,7 @@ def screenshot_article(header_tags, body_tags):
     first_image_path = os.path.join(IMAGES_DIR, 'tmp0.png')
     driver.save_screenshot(first_image_path)
     images.append(first_image_path)
+    driver.quit()
 
     img_num = 1
     remaining_tags = body_tags[2:]
