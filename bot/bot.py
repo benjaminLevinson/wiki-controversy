@@ -52,11 +52,13 @@ def screenshot_article(header_tags, body_tags):
     def fit_tags_to_screenshot(tags, image_name, max_image_height):
         image_height = 0
         tags_index = 0
+        all_drivers = set()
         driver = None
         while image_height <= max_image_height and tags_index <= len(tags):
             tags_index += 1
             old_driver = driver
             driver = build_and_visit_page(tags[0:tags_index])
+            all_drivers.add(driver)
             image_height = get_window_height(driver)
             # Revert to last state if paragraph pushes image height over max
             if image_height >= max_image_height and old_driver is not None:
@@ -64,7 +66,7 @@ def screenshot_article(header_tags, body_tags):
                 tags_index -= 1
                 break
         driver.save_screenshot(image_name)
-        driver.quit()
+        map(lambda x: x.quit(), all_drivers)
         return tags[tags_index:]
 
     images = []
