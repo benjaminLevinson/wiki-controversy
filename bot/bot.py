@@ -35,6 +35,8 @@ HTML_TEMPLATE = """
 
 
 def screenshot_article(header_tags, body_tags):
+    all_drivers = list()
+
     def build_and_visit_page(tags):
         html = BeautifulSoup(HTML_TEMPLATE, 'html.parser')
         html.find("body").extend(tags)
@@ -42,6 +44,7 @@ def screenshot_article(header_tags, body_tags):
         with open(tmp_file, 'w') as f:
             f.write(html.prettify())
         driver = webdriver.PhantomJS(executable_path=PHANTOMJS_PATH)
+        all_drivers.append(driver)
         driver.get(tmp_file)
         return driver
 
@@ -52,13 +55,12 @@ def screenshot_article(header_tags, body_tags):
     def fit_tags_to_screenshot(tags, image_name, max_image_height):
         image_height = 0
         tags_index = 0
-        all_drivers = set()
+
         driver = None
         while image_height <= max_image_height and tags_index <= len(tags):
             tags_index += 1
             old_driver = driver
             driver = build_and_visit_page(tags[0:tags_index])
-            all_drivers.add(driver)
             image_height = get_window_height(driver)
             # Revert to last state if paragraph pushes image height over max
             if image_height >= max_image_height and old_driver is not None:
@@ -66,7 +68,6 @@ def screenshot_article(header_tags, body_tags):
                 tags_index -= 1
                 break
         driver.save_screenshot(image_name)
-        map(lambda x: x.quit(), all_drivers)
         return tags[tags_index:]
 
     images = []
@@ -74,7 +75,6 @@ def screenshot_article(header_tags, body_tags):
     first_image_path = os.path.join(IMAGES_DIR, 'tmp0.png')
     driver.save_screenshot(first_image_path)
     images.append(first_image_path)
-    driver.quit()
 
     img_num = 1
     remaining_tags = body_tags[2:]
@@ -83,6 +83,8 @@ def screenshot_article(header_tags, body_tags):
         remaining_tags = fit_tags_to_screenshot(remaining_tags, image_path, MAX_SCREENSHOT_HEIGHT)
         images.append(image_path)
         img_num += 1
+
+    map(lambda x: x.quit(), all_drivers)
     return images
 
 
