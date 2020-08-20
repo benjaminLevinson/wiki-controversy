@@ -84,7 +84,8 @@ def screenshot_article(header_tags, body_tags):
         images.append(image_path)
         img_num += 1
 
-    map(lambda x: x.quit(), all_drivers)
+    for driver in all_drivers:
+        driver.quit()
     return images
 
 
