@@ -6,3 +6,4 @@ for _ in {1..10}; do
   python main.py && break
   sleep 3;
 done
+pgrep phantomjs | xargs kill
