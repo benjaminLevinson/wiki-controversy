@@ -26,3 +26,6 @@ export CONTROVERSY_ACCESS_TOKEN_SECRET=[key here]
 Now, if you run `tweet.sh` your bot should send out its first
 Tweet! To truly automate your bot, setup a cron job to execute
 `tweet.sh` on a regular schedule.
+
+## Acknowledgements
+Web driver code adapted from [NYTDiff bot](https://github.com/j-e-d/NYTdiff)
